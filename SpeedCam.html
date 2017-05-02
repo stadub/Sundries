@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="application-name" content="Speed Cams Minsk">
+	<meta name="description" content="Speed Cams locations for Minsk in match of 2017">
+	<meta name="author" content="Dima Stadub">
+	<title>SpeedCams Minsk (March 2017)</title>
+	<meta name="keywords" content="Минск, Камеры скорости, мкад, камеры, март 2017, minsk,Speedcam,Speedcontrol,By,Belarus,highways, march 2017">
+
+	<meta property="og:site_name" content="Dima Stadub Github"/>
+	<meta property="og:title" content="Speed Cam Minsk by march 2017."/>
+	<meta property="og:description" content="Speed Cams locations in Minsk by march 2017."/>
+	<meta property="og:image" content="http://minsknews.by/wp-content/uploads/2016/07/Radar.jpg">
+	<meta property="og:url" content="https://github.com/stadub/Sundries/SpeedCam.html">
+	<meta property="og:type" content="website"/>
+	<script src="https://api-maps.yandex.ru/2.1/?lang=en_US" type="text/javascript"></script>
+	
+	<script type="text/javascript">
+	function loadData(load) {
+	  var xmlhttp = new XMLHttpRequest();
+	  xmlhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			var resp=JSON.parse(this.response)
+			jsonData=resp;
+			load(resp);
+		}
+	  };
+	  xmlhttp.open("GET", "data.json", true);
+	  xmlhttp.send();
+	}
+		var selectedDate=null;
+		var jsonData=null;
+		var minsk_map;			
+		ymaps.ready(function(){
+			
+			minsk_map = new ymaps.Map("minsk_map", {
+				center: [53.902257,27.561831],
+				zoom: 10
+			}, { searchControlProvider: 'yandex#search'});
+			var objectManager = new ymaps.ObjectManager({
+				clusterize: true,
+				gridSize: 32,
+				clusterDisableClickZoom: true
+			});
+
+			objectManager.objects.options.set('preset', 'islands#redCinemaIcon');
+			objectManager.clusters.options.set('preset', 'islands#redClusterIcons');
+
+			minsk_map.geoObjects.add(objectManager);
+
+			var datePicker=document.getElementById("day");
+			datePicker.onchange = function(){
+			   filterDate();
+			}
+			setCurDate();
+
+		});
+		
+		function addCam(speed,date,address,target){
+			var dateFull=date+".05.2017"
+			var speedText="<b>"+speed+"</b> км/ч";
+			var pointer = new ymaps.Placemark(target, 
+			{  iconContent: speedText,
+				"balloonContentBody": "Дата: '"+ dateFull +"'</br>Адрес: "+ address + "</br>Скорость: " + speedText,
+				"hintContent": address, balloonHasCloseButton: false
+			},{ preset: 'islands#redStretchyIcon', balloonHasCloseButton: false }
+			);
+			minsk_map.geoObjects.add(pointer);
+		}
+			
+			
+		function getAddr (address){
+			console.log("Search location for:'"+address+"'");
+			return ymaps.geocode(address).then(function(res){
+				var cord=res.geoObjects.get(0).geometry.getCoordinates();
+				console.log("Found cordinate:"+cord);
+				return cord;
+			},	function(res){
+				console.log("Error adding address:"+address);
+				console.log(address);
+				console.log(res);
+				return [55.752, 37.616];
+			});
+			
+		}
+					
+		function fillInfo(json){
+			json.Cams.forEach(function(day){
+			var date=day.date;
+			if( selectedDate.getDate() != date ){
+				return; 
+			}
+			
+			day.cams.forEach(function(cam){
+				getAddr(cam.addr).then(function(cord){
+					addCam(cam.speed,day.date,cam.addr,cord);
+				})
+				
+				})
+			});
+			
+		};
+		
+		function filterDate(){
+			minsk_map.geoObjects.removeAll()
+			selectedDate=document.getElementById("day").valueAsDate;
+			curDate=new Date();
+
+			var year=selectedDate.getFullYear();
+			var day=selectedDate.getDate();
+			var month=selectedDate.getMonth();
+ 
+			if(year !=  curDate.getFullYear() || month != curDate.getMonth()){
+				return;
+			}
+			if(jsonData==null){
+				loadData(function(x){fillInfo(x);});
+			}else{
+				fillInfo(jsonData)
+			}
+				
+		}
+		function setCurDate(){
+			var datePicker=document.getElementById("day");
+			datePicker.valueAsDate = new Date();
+			return datePicker;
+		}
+	</script>
+</head>
+<body>
+    <h1>Speed Cam Map for Minsk in March of 2017</h1>
+	<div><input type="date" id="day" onchange="filterDate()></div>
+
+    <div>text</div>
+<div id="mapContainer">
+    <div id="minsk_map" style="width:800px; height:600px"></div>
+<div>
+    <button id="bt" onclick="setCurDate()">Show Today</button>
+</body>
+</html>
