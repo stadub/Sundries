@@ -126,6 +126,69 @@
 			datePicker.valueAsDate = new Date();
 			return datePicker;
 		}
+		
+		
+		ymaps.ready(init);
+
+function init () {
+    var myMap = new ymaps.Map('map', {
+            center: [55.76, 37.64],
+            zoom: 10
+        }, {
+            searchControlProvider: 'yandex#search'
+        }),
+        objectManager = new ymaps.ObjectManager({
+            // Setting an option to make placemarks start clusterizing.
+            clusterize: true,
+            // ObjectManager accepts the same options as the clusterer.
+            gridSize: 32
+        });
+
+    /**
+     * To set options for single objects and clusters, 
+     * we refer to child collections of ObjectManager.
+     */
+    objectManager.objects.options.set('preset', 'islands#greenDotIcon');
+    objectManager.clusters.options.set('preset', 'islands#greenClusterIcons');
+    myMap.geoObjects.add(objectManager);
+
+    $.ajax({
+        url: "data.json"
+    }).done(function(data) {
+        objectManager.add(data);
+    });
+
+}
+
+    objectManager.objects.options.set('preset', 'islands#blueStretchyIcon');
+   //objectManager.objects.settings.set('iconContent', 'islands#blueStretchyIcon');
+   
+    objectManager.clusters.options.set('preset', 'islands#invertedRedClusterIcons');
+	
+https://tech.yandex.com/maps/doc/jsapi/2.1/dg/concepts/geocoding-docpage/
+https://tech.yandex.com/maps/jsbox/2.1/object_manager
+http://ahint4.rssing.com/chan-3517188/all_p292.html
+var MultiGeocoder = require('multi-geocoder'),
+    // Getting access to the geocoding service.
+    geocoder = new MultiGeocoder({
+        coordorder: 'latlong',
+        lang: 'ru-RU'
+    });
+	
+	geocoder.geocode([
+    'Moscow, 1905 Street, 19',
+    'Moscow, 1st Kvesisskaya street, 18',
+    'Moscow, 1st Tverskoy-Yamskoy lane, 16'
+    ], {
+    // The description of objects in the response will be in English,
+  // even though the lang parameter is also set in the MultiGeocoder constructor.
+  https://tech.yandex.ru/maps/doc/jsapi/2.1/ref/reference/ClusterPlacemark-docpage/
+    lang: 'en-US'
+})
+    .then(function (res) {
+        console.log(res);
+    });
+	https://github.com/pages-themes/minimal
 	</script>
 </head>
 <body>
